@@ -1,0 +1,49 @@
+gcp:
+  # Path of the whitelisted service account's JSON key file
+  whitelistedServiceAccountKeyPath: "[Google Cloud Service Account key path e.g. /home/mirorin/gkeop-config/release-reader-key.json]"
+# Specify which vCenter resources to use
+vCenter:
+  # The credentials and address GKE On-Prem should use to connect to vCenter
+  credentials:
+    address: "[vCenter IP address e.g. 10.128.211.55]"
+    username: "[vSphere login user name e.g. hciadmin@vsphere.local]"
+    password: "[vSphere login user password e.g.NetApp123!]"
+  datacenter: "[vSphere Datacenter name e.g. NetApp-HCI-Datacenter-01]"
+  datastore: "[vSphere Datastore name e.g. nameAnthos_Datastore]"
+  cluster: "[vSphere Cluster name e.g. NetApp-HCI-Cluster-01]"
+  network: "[vSphere network name e.g. NetApp HCI VDS 01-Management_Network]"
+  resourcePool: "[vsphere Resource Pool name e.g. Anthos-Resource-Pool]"
+  # Provide the path to vCenter CA certificate pub key for SSL verification
+  caCertPath: "[CA cert path e.g. /home/mirorin/gkeop-config/vcenter.pem]"
+# The URL of the proxy for the jump host
+proxyUrl: ""
+adminWorkstation:
+  name: [Admin workstation name e.g. gke-admin-ws]
+  cpus: 4
+  memoryMB: 8192
+  # The boot disk size of the admin workstation in GB. It is recommended to use a
+  # disk with at least 50 GB to host images decompressed from the bundle.
+  diskGB: 50
+  # Name for the persistent disk to be mounted to the home directory (ending in .vmdk).
+  # Any directory in the supplied path must be created before deployment.
+  dataDiskName: [vmdk name e.g. gke-on-prem-admin-workstation-data-disk/gke-admin-ws-201011-161744-data-disk.vmdk]
+  # The size of the data disk in MB.
+  dataDiskMB: 512
+  network:
+    # The IP allocation mode: 'dhcp' or 'static'
+    ipAllocationMode: "static"
+    # # The host config in static IP mode. Do not include if using DHCP
+    hostConfig:
+       # The IPv4 static IP address for the admin workstation
+       ip: "[Admin workstation IP address e.g. 10.128.211.210]"
+       # The IP address of the default gateway of the subnet in which the admin workstation
+       # is to be created
+       gateway: "[Gateway IP address e.g. 10.128.211.1]"
+       # The subnet mask of the network where you want to create your admin workstation
+       netmask: "[Netmask e.g. 255.255.255.0]"
+       # The list of DNS nameservers to be used by the admin workstation
+       dns:
+       - "8.8.8.8"
+  # The URL of the proxy for the admin workstation
+  proxyUrl: ""
+  ntpServer: ntp.ubuntu.com
