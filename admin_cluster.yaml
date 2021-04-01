@@ -1,0 +1,169 @@
+apiVersion: v1
+kind: AdminCluster
+# (Required) Absolute path to a GKE bundle on disk
+bundlePath: "[bandle path e.g. /var/lib/gke/bundles/gke-onprem-vsphere-1.5.0-gke.27-full.tgz]"
+# (Required) vCenter configuration
+vCenter:
+  address: "[vCenter IP Address]"
+  datacenter: "[vSphere Datacenter name e.g. NetApp-HCI-Datacenter-01]"
+  cluster: "[vSphere Cluster name e.g. NetApp-HCI-Cluster-01]"
+  # Resource pool to use. Specify [VSPHERE_CLUSTER_NAME]/Resources to use the default
+  # resource pool
+  resourcePool: "[vSphere Resource pool name e.g. Anthos-Resource-Pool]"
+  datastore: "[vSphere Datastore name e.g. Anthos_Datastore]"
+  # Provide the path to vCenter CA certificate pub key for SSL verification
+  caCertPath: "[CAcert path e.g. /home/ubuntu/vcenter.pem]"
+  # The credentials to connect to vCenter
+  credentials:
+    username: "[vSphere login name e.g. hciadmin@vsphere.local]"
+    password: "[vSphere login password e.g. NetApp123!]"
+    # reference to external credentials file
+    fileRef:
+      # read credentials from this file
+      path: ""
+      # entry in the credential file
+      entry: ""
+  # Provide the name for the persistent disk to be used by the deployment (ending
+  # in .vmdk). Any directory in the supplied path must be created before deployment
+  dataDisk: "[vmdk name e.g. anthos-admin-data-disk.vmdk]"
+# (Required) Network configuration
+network:
+  # # (Optional) This section overrides ipBlockFile values. Use with ipType "static" mode.
+  # # Used for seesaw nodes as well
+  hostConfig:
+  #   # List of DNS servers
+     dnsServers: [DNS server IP address e.g. 8.8.8.8]
+  #   - ""
+  #   # List of NTP servers
+     ntpServers:
+     - "ntp.ubuntu.com"
+  #   # # List of DNS search domains
+  #   # searchDomainsForDNS:
+  #   # - ""
+  ipMode:
+    # (Required) Define what IP mode to use ("dhcp" or "static")
+    type: dhcp
+    # # (Required when using "static" mode) The absolute or relative path to the yaml file
+    # # to use for static IP allocation. Hostconfig part will be overwritten by network.hostconfig
+    # # if specified
+    # ipBlockFilePath: ""
+  # (Required) The Kubernetes service CIDR range for the cluster. Must not overlap
+  # with the pod CIDR range
+  serviceCIDR: 10.3.0.0/24
+  # (Required) The Kubernetes pod CIDR range for the cluster. Must not overlap with
+  # the service CIDR range
+  podCIDR: 10.2.0.0/16
+  vCenter:
+    # vSphere network name
+    networkName: "[vSphere Network Name e.g. NetApp HCI VDS 01-Management_Network]"
+# (Required) Load balancer configuration
+loadBalancer:
+  # (Required) The VIPs to use for load balancing
+  vips:
+    # Used to connect to the Kubernetes API
+    controlPlaneVIP: "[Virtual IP address for Control Plane e.g. 10.128.211.213]"
+    # # (Optional) Used for admin cluster addons (needed for multi cluster features). Must
+    # # be the same across clusters
+    # addonsVIP: ""
+  # (Required) Which load balancer to use "F5BigIP" "Seesaw" or "ManualLB". Uncomment
+  # the corresponding field below to provide the detailed spec
+  kind: Seesaw
+  # # (Required when using "ManualLB" kind) Specify pre-defined nodeports
+  # manualLB:
+  #   # NodePort for ingress service's http (only needed for user cluster)
+  #   ingressHTTPNodePort: 0
+  #   # NodePort for ingress service's https (only needed for user cluster)
+  #   ingressHTTPSNodePort: 0
+  #   # NodePort for control plane service
+  #   controlPlaneNodePort: 30968
+  #   # NodePort for addon service (only needed for admin cluster)
+  #   addonsNodePort: 31405
+  # # (Required when using "F5BigIP" kind) Specify the already-existing partition and
+  # # credentials
+  # f5BigIP:
+  #   address: ""
+  #   credentials:
+  #      username: ""
+  #      password: ""
+  #     # reference to external credentials file
+  #     fileRef:
+  #       # read credentials from this file
+  #       path: ""
+  #       # entry in the credential file
+  #       entry: ""
+  #   partition: ""
+  #   # # (Optional) Specify a pool name if using SNAT
+  #   # snatPoolName: ""
+  # (Required when using "Seesaw" kind) Specify the Seesaw configs
+  seesaw:
+    # (Required) The absolute or relative path to the yaml file to use for IP allocation
+    # for LB VMs. Must contain one or two IPs. Hostconfig part will be overwritten
+    # by network.hostconfig if specified.
+    ipBlockFilePath: "[Seesaw config file path e.g. /home/ubuntu/seesaw-admin-hostconfig.yaml]"
+    # (Required) The Virtual Router IDentifier of VRRP for the Seesaw group. Must
+    # be between 1-255 and unique in a VLAN.
+    vrid: 100
+    # (Required) The IP announced by the master of Seesaw group
+    masterIP: "[IP address to connect to Seesaw 10.128.211.212]"
+    # (Required) The number CPUs per machine
+    cpus: 4
+    # (Required) Memory size in MB per machine
+    memoryMB: 3072
+    # (Optional) Network that the LB interface of Seesaw runs in (default: cluster
+    # network)
+    vCenter:
+      # vSphere network name
+      networkName: "[vSphere network name e.g. NetApp HCI VDS 01-Management_Network]"
+    # (Optional) Run two LB VMs to achieve high availability (default: false)
+    enableHA: false
+# Spread admin addon nodes and user masters across different physical hosts (requires
+# at least three hosts)
+antiAffinityGroups:
+  # Set to false to disable DRS rule creation
+  enabled: false
+# (Optional) Specify the proxy configuration
+proxy:
+  # The URL of the proxy
+  url: ""
+  # The domains and IP addresses excluded from proxying
+  noProxy: ""
+# # (Optional) Use a private Docker registry to host GKE images
+# privateRegistry:
+#   # Do not include the scheme with your registry address
+#   address: ""
+#   credentials:
+#     # reference to external credentials file
+#     fileRef:
+#       # read credentials from this file
+#       path: ""
+#       # entry in the credential file
+#       entry: ""
+#   # The absolute or relative path to the CA certificate for this registry
+#   caCertPath: ""
+# (Required): The absolute or relative path to the GCP service account key for pulling
+# GKE images
+gcrKeyPath: "[gcrkey path e.g. /home/ubuntu/release-reader-key.json]"
+# (Optional) Specify which GCP project to connect your logs and metrics to
+stackdriver:
+  projectID: "Google Cloud project name e.g. netapp-anthos-test"
+  # A GCP region where you would like to store logs and metrics for this cluster.
+  clusterLocation: "asia-northeast1"
+  enableVPC: false
+  # The absolute or relative path to the key file for a GCP service account used to
+  # send logs and metrics from the cluster
+  serviceAccountKeyPath: "[Service Account key path e.g. /home/ubuntu/log-mon-sa.json]"
+  # (Optional/Preview) Disable vsphere resource metrics collection from vcenter.
+  # True by default during Preview
+  disableVsphereResourceMetrics: true
+# # (Optional) Configure kubernetes apiserver audit logging
+# cloudAuditLogging:
+#   projectid: ""
+#   # A GCP region where you would like to store audit logs for this cluster.
+#   clusterlocation: ""
+#   # The absolute or relative path to the key file for a GCP service account used to
+#   # send audit logs from the cluster
+#   serviceaccountkeypath: ""
+# # (Optional/Preview) Enable auto repair for the cluster
+# autoRepair:
+#   # Whether to enable auto repair feature. The feature is disabled by default.
+#   enabled: false
